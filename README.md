@@ -4,7 +4,9 @@ Un petit jeu mobile a 2 joueurs sur le meme ecran.
 
 ## Jouer
 
-Ouvre `index.html` ou publie le dossier avec GitHub Pages.
+En ligne: https://comebaille.github.io/cree-un-jeu-a-2-fun/
+
+En local: ouvre `index.html` ou lance un serveur statique.
 
 ## Regles
 
