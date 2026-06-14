@@ -12,6 +12,7 @@ En local: ouvre `index.html` ou lance un serveur statique.
 
 - P2 controle la raquette du haut.
 - P1 controle la raquette du bas.
+- Le mode IA remplace P2 par un adversaire de `Facile` a `Perfect timing`.
 - Glisse dans ta moitie d'ecran pour bouger.
 - Premier a 7 points gagne.
 - Les bonus `W`, `B` et `C` changent la taille, la vitesse ou la courbe de la balle.

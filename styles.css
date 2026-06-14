@@ -81,6 +81,7 @@ button {
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .score strong {
@@ -147,9 +148,37 @@ button {
 }
 
 .brand strong {
-  max-width: 13ch;
-  font-size: clamp(2.5rem, 15vw, 5.8rem);
+  max-width: 100%;
+  font-size: clamp(2.25rem, 11vw, 4.4rem);
   line-height: 0.92;
+}
+
+.mode-picker {
+  display: grid;
+  width: min(100%, 270px);
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.mode-button {
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(8, 7, 15, 0.68);
+  color: var(--muted);
+  font-size: clamp(0.72rem, 3.4vw, 0.9rem);
+  font-weight: 900;
+}
+
+.mode-button.is-selected {
+  border-color: rgba(255, 209, 102, 0.72);
+  background: rgba(255, 209, 102, 0.16);
+  color: var(--text);
+}
+
+.mode-button[data-level="perfect"] {
+  grid-column: 1 / -1;
 }
 
 .primary-button {
@@ -189,6 +218,11 @@ button {
 }
 
 @media (orientation: landscape) and (max-height: 520px) {
+  .menu {
+    gap: 10px;
+    padding: 14px 18px;
+  }
+
   .score {
     min-width: 92px;
     padding: 6px 10px;
@@ -205,5 +239,20 @@ button {
   .brand strong {
     max-width: none;
     font-size: clamp(2rem, 9vw, 4rem);
+  }
+
+  .mode-picker {
+    grid-template-columns: repeat(5, minmax(74px, 1fr));
+    width: min(96vw, 560px);
+  }
+
+  .mode-button {
+    min-height: 36px;
+    padding: 6px 8px;
+    font-size: 0.72rem;
+  }
+
+  .mode-button[data-level="perfect"] {
+    grid-column: auto;
   }
 }

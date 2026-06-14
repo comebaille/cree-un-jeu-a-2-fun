@@ -1,4 +1,4 @@
-const CACHE_NAME = "neon-rally-v1";
+const CACHE_NAME = "neon-rally-v2";
 const ASSETS = ["./", "./index.html", "./styles.css", "./game.js"];
 
 self.addEventListener("install", (event) => {

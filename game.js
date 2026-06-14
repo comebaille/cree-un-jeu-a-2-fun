@@ -4,11 +4,22 @@
   const playBtn = document.getElementById("playBtn");
   const pauseBtn = document.getElementById("pauseBtn");
   const menu = document.getElementById("menu");
+  const menuHint = document.getElementById("menuHint");
   const toast = document.getElementById("toast");
+  const topNameEl = document.getElementById("topName");
+  const bottomNameEl = document.getElementById("bottomName");
   const topScoreEl = document.getElementById("topScore");
   const bottomScoreEl = document.getElementById("bottomScore");
+  const modeButtons = [...document.querySelectorAll(".mode-button")];
 
   const targetScore = 7;
+  const AI_LEVELS = {
+    easy: { label: "IA facile", speed: 0.08, error: 92, delay: 0.3, centerBias: 0.36 },
+    medium: { label: "IA normal", speed: 0.13, error: 50, delay: 0.18, centerBias: 0.22 },
+    hard: { label: "IA dur", speed: 0.2, error: 21, delay: 0.09, centerBias: 0.1 },
+    perfect: { label: "Perfect timing", speed: 1, error: 0, delay: 0, centerBias: 0 },
+  };
+
   const state = {
     w: 0,
     h: 0,
@@ -25,6 +36,11 @@
     lastHit: "bottom",
     audio: null,
     pointers: new Map(),
+    mode: "duo",
+    aiLevel: "easy",
+    aiThink: 0,
+    aiTargetX: 0,
+    aiError: 0,
   };
 
   const players = {
@@ -127,6 +143,9 @@
     ball.vx = rand(-0.28, 0.28) * base;
     ball.vy = direction * base * 0.68;
     ball.spin = 0;
+    state.aiThink = 0;
+    state.aiTargetX = state.w / 2;
+    state.aiError = 0;
   }
 
   function resetMatch() {
@@ -151,6 +170,36 @@
   function updateScore() {
     topScoreEl.textContent = state.topScore;
     bottomScoreEl.textContent = state.bottomScore;
+  }
+
+  function updateModeUI() {
+    const isAi = state.mode === "ai";
+    players.top.label = isAi ? "IA" : "P2";
+    topNameEl.textContent = isAi ? AI_LEVELS[state.aiLevel].label : "P2";
+    bottomNameEl.textContent = "P1";
+    menuHint.textContent = isAi ? "Tu joues en bas contre l'IA. Premier a 7 points." : "Haut contre bas. Glisse ta raquette, marque 7 points.";
+    modeButtons.forEach((button) => {
+      const selected = button.dataset.mode === state.mode && (state.mode === "duo" || button.dataset.level === state.aiLevel);
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", selected ? "true" : "false");
+    });
+  }
+
+  function setMode(mode, level = state.aiLevel) {
+    state.mode = mode;
+    state.aiLevel = level;
+    updateModeUI();
+    resetBall(Math.random() > 0.5 ? 1 : -1);
+    render();
+  }
+
+  function applyUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode");
+    const level = params.get("level");
+    if (mode === "ai" && AI_LEVELS[level]) setMode("ai", level);
+    if (mode === "duo") setMode("duo");
+    if (params.get("autoplay") === "1") window.setTimeout(startGame, 120);
   }
 
   function startGame() {
@@ -182,7 +231,7 @@
     state.paused = false;
     menu.classList.remove("is-hidden");
     playBtn.textContent = "Rejouer";
-    showToast(`${winner === "bottom" ? "P1" : "P2"} gagne`, 1400);
+    showToast(`${winner === "bottom" ? "P1" : state.mode === "ai" ? "IA" : "P2"} gagne`, 1400);
     blip("score");
     buzz(80);
   }
@@ -257,6 +306,34 @@
     }
   }
 
+  function predictBallX(targetY) {
+    if (ball.vy >= 0) return state.w / 2;
+    const time = (targetY - ball.y) / ball.vy;
+    if (time <= 0) return state.w / 2;
+    const minX = ball.r + 8;
+    const maxX = state.w - ball.r - 8;
+    const span = maxX - minX;
+    let x = ball.x + ball.vx * time + ball.spin * time * time * 0.5;
+    x = ((x - minX) % (span * 2) + span * 2) % (span * 2);
+    return minX + (x > span ? span * 2 - x : x);
+  }
+
+  function updateAi(dt) {
+    if (state.mode !== "ai") return;
+    const level = AI_LEVELS[state.aiLevel];
+    state.aiThink -= dt;
+    if (state.aiThink <= 0) {
+      const predicted = ball.vy < 0 ? predictBallX(players.top.y + players.top.h / 2 + ball.r) : state.w / 2;
+      state.aiError = level.error ? rand(-level.error, level.error) : 0;
+      state.aiTargetX = predicted * (1 - level.centerBias) + (state.w / 2) * level.centerBias + state.aiError;
+      state.aiThink = level.delay;
+    }
+    const maxStep = level.speed >= 1 ? state.w : Math.max(90, state.w * level.speed) * dt * 4.2;
+    players.top.targetX = clamp(state.aiTargetX, players.top.w / 2 + 10, state.w - players.top.w / 2 - 10);
+    if (state.aiLevel === "perfect" && ball.vy < 0) players.top.x = players.top.targetX;
+    else players.top.x += clamp(players.top.targetX - players.top.x, -maxStep, maxStep);
+  }
+
   function collidePaddle(player, side) {
     const now = performance.now();
     const activeW = now < player.boostUntil ? player.w * 1.42 : player.w;
@@ -290,7 +367,7 @@
     burst(ball.x, ball.y, side === "top" ? players.top.color : players.bottom.color, 28);
     if (state.topScore >= targetScore) return finish("top");
     if (state.bottomScore >= targetScore) return finish("bottom");
-    showToast(`${side === "top" ? "P2" : "P1"} marque`, 780);
+    showToast(`${side === "top" ? (state.mode === "ai" ? "IA" : "P2") : "P1"} marque`, 780);
     resetBall(side === "top" ? 1 : -1);
   }
 
@@ -302,6 +379,7 @@
       state.nextPowerup = rand(4.2, 6.8);
     }
 
+    updateAi(dt);
     updatePaddles(dt);
     ball.vx += ball.spin * dt;
     ball.spin *= 0.985;
@@ -457,7 +535,7 @@
     ctx.fillStyle = "rgba(255, 255, 255, 0.16)";
     ctx.font = "800 13px system-ui";
     ctx.textAlign = "center";
-    ctx.fillText("P2 zone", state.w / 2, state.h * 0.23);
+    ctx.fillText(state.mode === "ai" ? AI_LEVELS[state.aiLevel].label : "P2 zone", state.w / 2, state.h * 0.23);
     ctx.fillText("P1 zone", state.w / 2, state.h * 0.77);
   }
 
@@ -483,7 +561,7 @@
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    const side = y < state.h / 2 ? "top" : "bottom";
+    const side = state.mode === "ai" ? "bottom" : y < state.h / 2 ? "top" : "bottom";
     state.pointers.set(event.pointerId, side);
     players[side].targetX = x;
     canvas.setPointerCapture?.(event.pointerId);
@@ -509,6 +587,9 @@
   canvas.addEventListener("pointercancel", (event) => state.pointers.delete(event.pointerId));
 
   playBtn.addEventListener("click", startGame);
+  modeButtons.forEach((button) => {
+    button.addEventListener("click", () => setMode(button.dataset.mode, button.dataset.level || state.aiLevel));
+  });
   pauseBtn.addEventListener("click", togglePause);
   window.addEventListener("resize", resize);
   document.addEventListener("visibilitychange", () => {
@@ -522,5 +603,7 @@
   }
 
   resize();
+  updateModeUI();
+  applyUrlParams();
   render();
 })();

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <meta name="theme-color" content="#08070f" />
-    <meta name="description" content="Neon Rally, un duel mobile a 2 joueurs sur le meme ecran." />
+    <meta name="description" content="Neon Rally, un duel mobile a 2 joueurs ou contre l'IA." />
     <title>Neon Rally</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -27,10 +27,17 @@
       <section id="menu" class="menu">
         <div class="brand">
           <span>Neon Rally</span>
-          <strong>Duel tactile a 2</strong>
+          <strong>Duel neon</strong>
+        </div>
+        <div class="mode-picker" aria-label="Mode de jeu">
+          <button class="mode-button is-selected" type="button" data-mode="duo">2 joueurs</button>
+          <button class="mode-button" type="button" data-mode="ai" data-level="easy">IA facile</button>
+          <button class="mode-button" type="button" data-mode="ai" data-level="medium">IA normal</button>
+          <button class="mode-button" type="button" data-mode="ai" data-level="hard">IA dur</button>
+          <button class="mode-button" type="button" data-mode="ai" data-level="perfect">Perfect timing</button>
         </div>
         <button id="playBtn" class="primary-button" type="button">Jouer</button>
-        <p>Haut contre bas. Glisse ta raquette, marque 7 points.</p>
+        <p id="menuHint">Haut contre bas. Glisse ta raquette, marque 7 points.</p>
       </section>
 
       <section id="toast" class="toast" aria-live="assertive"></section>
