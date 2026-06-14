@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#08070f" />
+    <meta name="description" content="Neon Rally, un duel mobile a 2 joueurs sur le meme ecran." />
+    <title>Neon Rally</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="game-shell" aria-label="Neon Rally">
+      <canvas id="game" aria-label="Terrain de jeu Neon Rally"></canvas>
+
+      <section class="hud" aria-live="polite">
+        <div class="score score-top">
+          <span id="topName">P2</span>
+          <strong id="topScore">0</strong>
+        </div>
+        <button id="pauseBtn" class="icon-button" type="button" aria-label="Pause">II</button>
+        <div class="score score-bottom">
+          <span id="bottomName">P1</span>
+          <strong id="bottomScore">0</strong>
+        </div>
+      </section>
+
+      <section id="menu" class="menu">
+        <div class="brand">
+          <span>Neon Rally</span>
+          <strong>Duel tactile a 2</strong>
+        </div>
+        <button id="playBtn" class="primary-button" type="button">Jouer</button>
+        <p>Haut contre bas. Glisse ta raquette, marque 7 points.</p>
+      </section>
+
+      <section id="toast" class="toast" aria-live="assertive"></section>
+    </main>
+
+    <script src="./game.js" defer></script>
+  </body>
+</html>
